@@ -25,6 +25,15 @@ def trendline_breakout_dataset(
     adx = ta.adx(ohlcv['high'], ohlcv['low'], ohlcv['close'], lookback)
     adx_arr = adx['ADX_' + str(lookback)].to_numpy()
 
+    # Nouveaux indicateurs (Features option 2)
+    # Distance de la Moyenne Mobile (A quel point on est loin du prix "moyen")
+    sma200 = ta.sma(ohlcv['close'], length=200)
+    sma_dist_arr = ((ohlcv['close'] - sma200) / sma200).to_numpy() # Pourcentage
+    
+    # RSI
+    rsi = ta.rsi(ohlcv['close'], length=14)
+    rsi_arr = rsi.to_numpy()
+
     trades = pd.DataFrame()
     trade_i = 0
 
@@ -80,6 +89,11 @@ def trendline_breakout_dataset(
             # ADX
             trades.loc[trade_i, 'adx'] = adx_arr[i]
 
+            # Nouveaux indicateurs (Option 2)
+            trades.loc[trade_i, 'sma_dist'] = sma_dist_arr[i]
+            trades.loc[trade_i, 'rsi'] = rsi_arr[i]
+            trades.loc[trade_i, 'hour'] = ohlcv.index[i].hour
+
 
         if in_trade:
             if close[i] >= tp_price or close[i] <= sl_price or i >= hp_i:
@@ -91,8 +105,8 @@ def trendline_breakout_dataset(
 
     trades['return'] = trades['exit_p'] - trades['entry_p']
     
-    # Features
-    data_x = trades[['resist_s', 'tl_err', 'vol', 'max_dist', 'adx']]
+    # Features (Anciennes + Nouvelles)
+    data_x = trades[['resist_s', 'tl_err', 'vol', 'max_dist', 'adx', 'sma_dist', 'rsi', 'hour']]
     # Label
     data_y = pd.Series(0, index=trades.index)
     data_y.loc[trades['return'] > 0] = 1

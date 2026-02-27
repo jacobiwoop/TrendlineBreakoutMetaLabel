@@ -4,7 +4,7 @@ import pandas_ta as ta
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 from trendline_break_dataset import trendline_breakout_dataset
-from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
 
 
 def walkforward_model(
@@ -35,7 +35,7 @@ def walkforward_model(
             x_train = data_x.loc[train_indices]
             y_train = data_y.loc[train_indices]
             print('training', i, 'N cases', len(train_indices))
-            model = RandomForestClassifier(n_estimators=1000, max_depth=3, random_state=69420)
+            model = xgb.XGBClassifier(n_estimators=1000, max_depth=3, learning_rate=0.01, random_state=69420, eval_metric="logloss")
             model.fit(x_train.to_numpy(), y_train.to_numpy())
 
             next_train += step_size
